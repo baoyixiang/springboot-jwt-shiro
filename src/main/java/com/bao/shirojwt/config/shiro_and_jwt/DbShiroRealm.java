@@ -1,6 +1,6 @@
-package com.bao.shirojwt.config;
+package com.bao.shirojwt.config.shiro_and_jwt;
 
-import com.bao.shirojwt.UserService;
+import com.bao.shirojwt.service.UserService;
 import com.bao.shirojwt.entity.User;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;

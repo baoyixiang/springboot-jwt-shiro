@@ -1,4 +1,4 @@
-package com.bao.shirojwt;
+package com.bao.shirojwt.service;
 
 import com.bao.shirojwt.dao.UserDao;
 import com.bao.shirojwt.entity.User;
@@ -8,27 +8,28 @@ import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class UserService {
 
-    private static final String encryptSalt = "F12839WhsnnEV$#23b";
-
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     private UserDao userDao;
 
     /**
-     * 每次登录，生成一个新的token，
-     * 生成的token中
+     * 每次登录，生成一个新的token
+     * 生成的token中 claim 中保存的有username， 还有加密用的 salt
+     * 登录会刷新token的过期时间
+     * 要把加密的salt和username存入redis中， 这样
+     * 当访问接口时  从缓存中取出  username和salt进行加密比对
      * @param username
      * @return
      */
@@ -37,7 +38,9 @@ public class UserService {
         String lastLoginSalt = JwtUtils.generateSalt();
         String jwtString = JwtUtils.sign(username, lastLoginSalt, 3600);
         userDao.updateLoginSalt(username, lastLoginSalt, jwtString);
+        stringRedisTemplate.opsForHash().put("user_token_salt", username, lastLoginSalt);
         return jwtString;
+
     }
 
     /**
@@ -52,13 +55,12 @@ public class UserService {
     }
 
     /**
-     * 获取此用户最后一次登录的 salt 和 用户信息
+     * 获取此用户最后一次登录的
      * 通过salt 和 username就可以得到 最后一次登录的token，然后用来与最新一次请求的token做对比
      * @return
      */
-    public User getJwtTokenInfo(String username) {
-        User user = getUserInfo(username);
-        return user;
+    public String getJwtTokenSalt(String username) {
+        return stringRedisTemplate.opsForHash().get("user_token_salt", username).toString();
     }
 
     /**

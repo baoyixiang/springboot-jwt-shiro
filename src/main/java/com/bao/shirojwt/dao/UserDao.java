@@ -14,7 +14,8 @@ public interface UserDao {
     @Select("select * from user")
     List<User> listUser();
 
-    @Insert("insert into user(username,password,name,last_salt,roles) values(#{username},#{password},#{name},#{lastSalt},#{roles})")
+    @Insert("insert into user(username,password,name,last_login_salt,roles,encrypt_salt,last_login_token) " +
+            "values(#{username},#{password},#{name},#{lastLoginSalt},#{roles},#{encryptSalt},#{lastLoginToken})")
     Integer insertUser(User user);
 
     @Select("select * from user where username=#{username}")

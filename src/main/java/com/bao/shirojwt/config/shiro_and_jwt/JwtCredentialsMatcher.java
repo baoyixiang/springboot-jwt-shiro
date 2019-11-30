@@ -1,4 +1,4 @@
-package com.bao.shirojwt.config;
+package com.bao.shirojwt.config.shiro_and_jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -10,8 +10,6 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.credential.CredentialsMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.UnsupportedEncodingException;
 
 public class JwtCredentialsMatcher implements CredentialsMatcher {
 
@@ -26,11 +24,11 @@ public class JwtCredentialsMatcher implements CredentialsMatcher {
         Object stored = authenticationInfo.getCredentials();  // 这是保存的salt
         String salt = stored.toString();
 
-        User user = (User) authenticationInfo.getPrincipals().getPrimaryPrincipal();
+        String username = authenticationInfo.getPrincipals().getPrimaryPrincipal().toString();
         try {
             Algorithm algorithm = Algorithm.HMAC256(salt);
             JWTVerifier verifier = JWT.require(algorithm)
-                    .withClaim("username", user.getUsername())
+                    .withClaim("username", username)
                     .build();
             verifier.verify(token);
             return true;

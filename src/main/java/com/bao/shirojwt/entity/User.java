@@ -12,6 +12,10 @@ public class User {
     private String encryptSalt;
     private String lastLoginToken;
 
+    public String getLastLoginToken() {
+        return lastLoginToken;
+    }
+
     public void setLastLoginToken(String lastLoginToken) {
         this.lastLoginToken = lastLoginToken;
     }

@@ -1,6 +1,6 @@
-package com.bao.shirojwt.config;
+package com.bao.shirojwt.config.shiro_and_jwt;
 
-import com.bao.shirojwt.UserService;
+import com.bao.shirojwt.service.UserService;
 import com.bao.shirojwt.entity.User;
 import com.bao.shirojwt.utils.JwtUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -48,15 +48,16 @@ public class JwtShiroRealm extends AuthorizingRealm {
         String token = jwtToken.getToken();
 
         // token 为这次请求所带的token，其中claim包含的有 username
-        // 然后通过 username 可以获取这个用户存的token
-        User user = userService.getJwtTokenInfo(JwtUtils.getUsername(token));
-        if (user == null) {
+        // 然后通过 username 可以获取这个用户存的 用来加密 token的salt
+        String tokenUsername = JwtUtils.getUsername(token);
+        String salt = userService.getJwtTokenSalt(tokenUsername);
+        if (salt == null) {
             // 如果 user == null ，说明缓存了中已经删除这条消息
             throw new AuthenticationException("token过期，请重新登录");
         }
 
         // 这个会交给 jwtCredenMatcher 来做判断的逻辑
-        SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(user, user.getLastLoginSalt(), "jwtRealm");
+        SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(tokenUsername, salt, "jwtRealm");
 
         return authenticationInfo;
     }

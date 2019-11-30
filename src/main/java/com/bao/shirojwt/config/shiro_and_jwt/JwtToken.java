@@ -1,4 +1,4 @@
-package com.bao.shirojwt.config;
+package com.bao.shirojwt.config.shiro_and_jwt;
 
 import org.apache.shiro.authc.HostAuthenticationToken;
 

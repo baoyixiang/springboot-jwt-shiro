@@ -1,9 +1,8 @@
 package com.bao.shirojwt.controller;
 
-import com.bao.shirojwt.UserService;
+import com.bao.shirojwt.service.UserService;
 import com.bao.shirojwt.domain.ResponseVO;
 import com.bao.shirojwt.entity.User;
-import org.apache.catalina.security.SecurityUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UnknownAccountException;
@@ -12,7 +11,6 @@ import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

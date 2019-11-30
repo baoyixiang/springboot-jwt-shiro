@@ -1,6 +1,6 @@
-package com.bao.shirojwt.config;
+package com.bao.shirojwt.config.shiro_and_jwt;
 
-import com.bao.shirojwt.UserService;
+import com.bao.shirojwt.service.UserService;
 import com.bao.shirojwt.entity.User;
 import com.bao.shirojwt.utils.JwtUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -115,10 +115,10 @@ public class JwtAuthFilter extends AuthenticatingFilter {
         String newToken = null;
         if (token instanceof JwtToken) {
             JwtToken jwtToken = (JwtToken) token;
-            User user = (User) subject.getPrincipal();
+            String username = subject.getPrincipal().toString();
             boolean shouldRefresh = shouldTokenRefresh(JwtUtils.getIssuedAt(jwtToken.getToken()));
             if (shouldRefresh) {
-                newToken = userService.generateAndStoreJwtToken(user.getUsername());
+                newToken = userService.generateAndStoreJwtToken(username);
             }
         }
         // 如果token刷新了，就把新的token放到response头中返回给前端
