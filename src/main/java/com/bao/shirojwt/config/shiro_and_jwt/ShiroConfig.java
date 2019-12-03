@@ -1,5 +1,6 @@
 package com.bao.shirojwt.config.shiro_and_jwt;
 
+import com.bao.shirojwt.service.UserService;
 import org.apache.shiro.authc.Authenticator;
 import org.apache.shiro.authc.pam.FirstSuccessfulStrategy;
 import org.apache.shiro.authc.pam.ModularRealmAuthenticator;
@@ -10,6 +11,7 @@ import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.spring.web.config.DefaultShiroFilterChainDefinition;
 import org.apache.shiro.spring.web.config.ShiroFilterChainDefinition;
 import org.apache.shiro.web.mgt.DefaultWebSessionStorageEvaluator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,7 +23,8 @@ import java.util.Map;
 public class ShiroConfig {
 
 
-
+    @Autowired
+    private UserService userService;
     /**
      * 初始化Authenticator
      */
@@ -90,8 +93,12 @@ public class ShiroConfig {
         return realm;
     }
 
+    // 下面两个不能加 Bean注解，不然Spring自动会注入Filter，但是里面要用到自动注入咋办？ 当参数传进去
+    // 自动注入是初始化时进行的，即在这些代码执行之前
+    // 自动注入分两步， 1. 收集组件，  2. 进行关联（注入）
+    // 如果在一个非组件中注入一个组件，第二步时找不到这个非组件，就没办法注入。
     protected JwtAuthFilter createAuthFilter() {
-        return new JwtAuthFilter();
+        return new JwtAuthFilter(userService);
     }
 
     protected AnyRolesAuthorizationFilter createRolesFilter() {

@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.bao.shirojwt.entity.User;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -31,6 +32,9 @@ public class JwtCredentialsMatcher implements CredentialsMatcher {
                     .withClaim("username", username)
                     .build();
             verifier.verify(token);
+            return true;
+        } catch (TokenExpiredException e) {
+            // 如果token过期了，仍然放行，过期的逻辑在JwtAuthFilter中实现
             return true;
         } catch (JWTVerificationException e) {
             logger.error("Token Error: {}", e.getMessage());

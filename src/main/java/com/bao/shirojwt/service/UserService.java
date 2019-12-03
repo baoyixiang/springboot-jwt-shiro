@@ -8,6 +8,7 @@ import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 
-@Service
+@Service("userService")
 public class UserService {
 
     @Autowired
@@ -23,6 +24,9 @@ public class UserService {
 
     @Autowired
     private UserDao userDao;
+
+    @Value("${jwt.expired-internal}")
+    private Integer EXPIRED_INTERNAL;
 
     /**
      * 每次登录，生成一个新的token
@@ -36,7 +40,7 @@ public class UserService {
     public String generateAndStoreJwtToken(String username) {
         // 这里的salt是用来加密token的salt，与加密password的salt不是一回事。
         String lastLoginSalt = JwtUtils.generateSalt();
-        String jwtString = JwtUtils.sign(username, lastLoginSalt, 3600);
+        String jwtString = JwtUtils.sign(username, lastLoginSalt, EXPIRED_INTERNAL);
         userDao.updateLoginSalt(username, lastLoginSalt, jwtString);
         stringRedisTemplate.opsForHash().put("user_token_salt", username, lastLoginSalt);
         return jwtString;

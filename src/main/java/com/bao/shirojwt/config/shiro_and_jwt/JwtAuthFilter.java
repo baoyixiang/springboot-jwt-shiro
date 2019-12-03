@@ -14,8 +14,10 @@ import org.apache.shiro.web.util.WebUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
@@ -27,13 +29,11 @@ import java.util.Date;
 public class JwtAuthFilter extends AuthenticatingFilter {
     private final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
 
-    private static final int TOKEN_REFRESH_INTERVAL = 300;
-
-    @Autowired
     private UserService userService;
 
-    public JwtAuthFilter() {
+    public JwtAuthFilter(UserService userService) {
         this.setLoginUrl("/login");
+        this.userService = userService;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class JwtAuthFilter extends AuthenticatingFilter {
 
         boolean allowed = false;
         try {
-            // 相当于每次请求都做了一次login？
+            // 相当于每次请求都做了一次login
             allowed = executeLogin(request, response);
         } catch (IllegalStateException e) {
             // 没有找到token
@@ -85,7 +85,7 @@ public class JwtAuthFilter extends AuthenticatingFilter {
     @Override
     protected AuthenticationToken createToken(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
         String jwtToken = getAuthcHeader(servletRequest);
-        if (StringUtils.isNoneBlank(jwtToken) && !JwtUtils.isTokenExpired(jwtToken)) {
+        if (StringUtils.isNoneBlank(jwtToken)) {
             return new JwtToken(jwtToken);
         }
 
@@ -101,13 +101,18 @@ public class JwtAuthFilter extends AuthenticatingFilter {
         HttpServletResponse httpServletResponse = WebUtils.toHttp(servletResponse);
         httpServletResponse.setCharacterEncoding("UTF-8");
         httpServletResponse.setContentType("application/json;charset=UTF-8");
-        httpServletResponse.setStatus(HttpStatus.SC_UNAUTHORIZED); // 状态码203，意思为没有授权信息
+        httpServletResponse.setStatus(HttpStatus.SC_UNAUTHORIZED); // 状态码401，只要前端收到401状态，就需要用户登录一次
         fillCorsHeader(WebUtils.toHttp(servletRequest), httpServletResponse);
         return false;
     }
 
     /**
      * 用户登录成功会调用的方法，在此方法中还判断了token是否需要刷新
+     * 后端对token刷新的管理应该分两类
+     * 1. token中的expire date 到了，刷新一下，然后返回给前端，前端下次请求时就直接带这个，不用重新登录。
+     *    这样是为了保障安全性，防止token被窃取
+     * 2. 还有就是为了减轻redis缓存的空间，要定期的清楚一些token，
+     *    可以加一些限制，比如如果一个用户很久没有登录了，就清除掉。这样用户再发起请求时，token找不到了，前端用户就需要重新登录。
      */
     @Override
     protected boolean onLoginSuccess(AuthenticationToken token, Subject subject, ServletRequest request, ServletResponse response) throws Exception {
@@ -116,12 +121,13 @@ public class JwtAuthFilter extends AuthenticatingFilter {
         if (token instanceof JwtToken) {
             JwtToken jwtToken = (JwtToken) token;
             String username = subject.getPrincipal().toString();
-            boolean shouldRefresh = shouldTokenRefresh(JwtUtils.getIssuedAt(jwtToken.getToken()));
+            boolean shouldRefresh = JwtUtils.isTokenExpired(jwtToken.getToken());
             if (shouldRefresh) {
+                // 这里 userSevice报空指针，奇怪了。
                 newToken = userService.generateAndStoreJwtToken(username);
             }
         }
-        // 如果token刷新了，就把新的token放到response头中返回给前端
+
         if (StringUtils.isNotBlank(newToken)) {
             httpServletResponse.setHeader("x-auth-token", newToken);
         }
@@ -142,11 +148,6 @@ public class JwtAuthFilter extends AuthenticatingFilter {
         HttpServletRequest httpServletRequest = WebUtils.toHttp(request);
         String header = httpServletRequest.getHeader("x-auth-token");
         return StringUtils.removeStart(header, "Bearer ");
-    }
-
-    protected boolean shouldTokenRefresh(Date issueAt) {
-        LocalDateTime issueTime = LocalDateTime.ofInstant(issueAt.toInstant(), ZoneId.systemDefault());
-        return LocalDateTime.now().minusSeconds(TOKEN_REFRESH_INTERVAL).isAfter(issueTime);
     }
 
     protected void fillCorsHeader(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
