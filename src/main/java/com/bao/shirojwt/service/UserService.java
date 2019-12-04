@@ -1,6 +1,7 @@
 package com.bao.shirojwt.service;
 
 import com.bao.shirojwt.dao.UserDao;
+import com.bao.shirojwt.domain.user.LoginInfo;
 import com.bao.shirojwt.entity.User;
 import com.bao.shirojwt.utils.JwtUtils;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
@@ -14,6 +15,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 @Service("userService")
@@ -21,6 +23,9 @@ public class UserService {
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Autowired
     private UserDao userDao;
@@ -41,8 +46,12 @@ public class UserService {
         // 这里的salt是用来加密token的salt，与加密password的salt不是一回事。
         String lastLoginSalt = JwtUtils.generateSalt();
         String jwtString = JwtUtils.sign(username, lastLoginSalt, EXPIRED_INTERNAL);
-        userDao.updateLoginSalt(username, lastLoginSalt, jwtString);
-        stringRedisTemplate.opsForHash().put("user_token_salt", username, lastLoginSalt);
+        userDao.updateLoginSalt(username, lastLoginSalt, jwtString);  // 更新数据库
+
+        LoginInfo info = new LoginInfo();
+        info.setLastLoginSalt(lastLoginSalt);
+        info.setLastLoginTime(new Date());
+        redisTemplate.opsForHash().put("user_token_info", username, info); // 更新缓存
         return jwtString;
 
     }
