@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 @RestController
 public class LoginController {
@@ -39,7 +40,7 @@ public class LoginController {
     }
 
     @PostMapping("login")
-    public ResponseVO login(@RequestBody User userVO, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseVO login(@RequestBody @Valid User userVO, HttpServletRequest request, HttpServletResponse response) {
         Subject subject = SecurityUtils.getSubject();
         try {
             UsernamePasswordToken token = new UsernamePasswordToken(userVO.getUsername(), userVO.getPassword());
