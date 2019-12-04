@@ -32,9 +32,9 @@ public class TokenSchedulerTask {
         ArrayList<Object> deleteKeys = new ArrayList<>(100); // 分配初始capacity，避免过多的扩容，影响性能。
         for (Object key : tokenInfos.keySet()) {
             LoginInfo curInfo = JSON.parseObject(JSONObject.toJSONString(tokenInfos.get(key), true), LoginInfo.class);
-            Date judgeDate = new Date(curInfo.getLastLoginTime().getTime() + 30*1000) ;
+            Date judgeDate = new Date(curInfo.getLastLoginTime().getTime() + 3600*24*30*1000) ;
             if ( judgeDate.before(new Date()) ) {
-                // 说明这个用户的 token 信息以及一个月没有更新过了
+                // 说明这个用户的 token 信息已经一个月没有更新过了
                 deleteKeys.add(key);
             }
         }
