@@ -8,11 +8,15 @@ import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authz.AuthorizationInfo;
+import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 这个Realm是 用户登录后发送请求时采用的Realm
@@ -36,7 +40,15 @@ public class JwtShiroRealm extends AuthorizingRealm {
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
-        return null;
+        SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
+        String username= principalCollection.getPrimaryPrincipal().toString();
+        List<String> roles = userService.getUserRoles(username);  // 这里应该从缓存中读取比较好
+
+        if (roles != null) {
+            simpleAuthorizationInfo.addRoles(roles);
+        }
+
+        return simpleAuthorizationInfo;
     }
 
     /**

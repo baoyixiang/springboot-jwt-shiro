@@ -49,6 +49,7 @@ public class LoginController {
             // 如果登录成功，生成jwt的token返回给前端
             User user = (User) subject.getPrincipal();
             String newToken = userService.generateAndStoreJwtToken(user.getUsername());
+            userService.cacheSomeInfoWhenLogin(user.getUsername());
             response.setHeader("x-auth-token", newToken);
 
             return new ResponseVO(true, "登录成功");

@@ -1,5 +1,7 @@
 package com.bao.shirojwt.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bao.shirojwt.dao.UserDao;
 import com.bao.shirojwt.domain.user.LoginInfo;
 import com.bao.shirojwt.entity.User;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service("userService")
 public class UserService {
@@ -57,6 +60,14 @@ public class UserService {
     }
 
     /**
+     * 在登录的时候要保存一些信息到缓存中，比如用户的角色信息
+     */
+    public void cacheSomeInfoWhenLogin(String username) {
+        User user = userDao.findUserByUsername(username);
+        redisTemplate.opsForHash().put("user_roles", username, user.getRoles());
+    }
+
+    /**
      * 获取用户的数据，主要要获取加密后的密码，用于比对
      * @param username
      * @return
@@ -73,7 +84,8 @@ public class UserService {
      * @return
      */
     public String getJwtTokenSalt(String username) {
-        return stringRedisTemplate.opsForHash().get("user_token_salt", username).toString();
+        LoginInfo curInfo = JSON.parseObject(JSONObject.toJSONString(redisTemplate.opsForHash().get("user_token_info", username), true), LoginInfo.class);
+        return curInfo.getLastLoginSalt();
     }
 
     /**
@@ -81,8 +93,9 @@ public class UserService {
      * @param userId
      * @return
      */
-    public List<String> getUserRoles(Integer userId) {
-        return Arrays.asList("admin");
+    public List<String> getUserRoles(String username) {
+        String rolesString = redisTemplate.opsForHash().get("user_roles", username).toString();
+        return Arrays.asList(rolesString.split(","));
     }
 
     /**

@@ -13,18 +13,12 @@ import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 import org.apache.shiro.web.util.WebUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.annotation.Resource;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 
 public class JwtAuthFilter extends AuthenticatingFilter {
     private final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
@@ -123,7 +117,6 @@ public class JwtAuthFilter extends AuthenticatingFilter {
             String username = subject.getPrincipal().toString();
             boolean shouldRefresh = JwtUtils.isTokenExpired(jwtToken.getToken());
             if (shouldRefresh) {
-                // 这里 userSevice报空指针，奇怪了。
                 newToken = userService.generateAndStoreJwtToken(username);
             }
         }

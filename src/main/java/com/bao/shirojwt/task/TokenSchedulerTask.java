@@ -25,7 +25,7 @@ public class TokenSchedulerTask {
 
     // 每个月清除一次不活跃用户
     // 不活跃用户的判定 还未实现
-    @Scheduled(cron="*/6 * * * * ?")
+    @Scheduled(cron="* * * * 1/2 ?")
     private void process(){
         Map<Object, Object> tokenInfos = redisTemplate.opsForHash().entries("user_token_info");
         // 遍历用户登录信息，筛选不活跃用户，即一个月未登录的用户，然后删掉其tokeninfo，下次他再来就要重新登录。

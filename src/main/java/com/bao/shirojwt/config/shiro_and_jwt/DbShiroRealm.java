@@ -38,15 +38,7 @@ public class DbShiroRealm extends AuthorizingRealm {
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
-        SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
-        User user = (User) principalCollection.getPrimaryPrincipal();
-        List<String> roles = new ArrayList<>();   // 这里应该从缓存中读取比较好
-
-        if (roles != null) {
-            simpleAuthorizationInfo.addRoles(roles);
-        }
-
-        return simpleAuthorizationInfo;
+        return null;
     }
 
     // 认证

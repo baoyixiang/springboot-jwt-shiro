@@ -76,7 +76,7 @@ public class ShiroConfig {
         chainDefinition.addPathDefinition("/login", "noSessionCreation,anon");
         chainDefinition.addPathDefinition("/logout", "noSessionCreation,authcToken[permissive]");
         chainDefinition.addPathDefinition("/images/**", "anon");
-        chainDefinition.addPathDefinition("/admin/**", "noSessionCreation,authcToken,anyRole[admin,manager]");
+        chainDefinition.addPathDefinition("/getString", "noSessionCreation,authcToken,anyRole[admin,manager]");
         chainDefinition.addPathDefinition("/**", "noSessionCreation, authcToken");
         return chainDefinition;
     }

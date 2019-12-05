@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.util.HashMap;
 import java.util.Map;
 
+// @ControllerAdvice 注解让这个类成为全局异常处理类，可以指定处理哪个类抛出的异常
 @ControllerAdvice(assignableTypes = LoginController.class)
 public class GlobalExceptionHandler {
 
+    // @ExceptionHandler 可以指定这个方法处理哪个异常
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handlerValidationExceptions(MethodArgumentNotValidException ex) {
 
